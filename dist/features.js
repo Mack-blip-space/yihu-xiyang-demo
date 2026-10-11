@@ -12,7 +12,7 @@ function sharingEntry(){return `<section class="sharing-entry"><span class="icon
 let readerGeneration=0, readerQueue=[], readerVoice=null, readerActive=false, readerPreview=false, readerIndex=0;
 function speechRate(){const r=Number(prefs.speechRate);return [.65,.78,.9].includes(r)?r:.78;}
 function mandarinVoices(){if(!('speechSynthesis' in window))return [];return speechSynthesis.getVoices().filter(v=>/^(zh|cmn)(-|_|$)/i.test(v.lang)&&!/(hk|yue)/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));}
-function voiceScore(v){const lang=v.lang.replaceAll('_','-'),name=v.name;return (/^zh-(CN|Hans|SG)|^cmn|^zh$/i.test(lang)?100:0)+(/Natural|Neural|Premium|Enhanced|自然|增强/i.test(name)?40:0)+(/Xiaoxiao|Xiaoyi|Ting.?Ting|晓晓|晓伊|婷婷/i.test(name)?25:0)+(/Google.*中文|Google.*Chinese/i.test(name)?15:0)+(v.default?1:0);}
+function voiceScore(v){const lang=v.lang.replaceAll('_','-'),name=v.name;return (/^zh-(CN|Hans|SG)|^cmn|^zh$/i.test(lang)?100:0)+(/Natural|Neural|Premium|Enhanced|自然|增强/i.test(name)?40:0)+(/Xiaoxiao|Xiaoyi|Ting.?Ting|晓晓|晓伊|婷婷/i.test(name)?25:0)+(/Google.*(普通话|國語|国语|Mandarin|中文|Chinese)/i.test(name)?20:0)+(v.default?1:0);}
 function selectedVoice(){const voices=mandarinVoices();return voices.find(v=>v.voiceURI===prefs.speechVoice)||voices[0]||null;}
 function voiceOptions(){return '<option value="">自动优选普通话</option>'+mandarinVoices().map(v=>`<option value="${esc(v.voiceURI)}" ${prefs.speechVoice===v.voiceURI?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${v.localService?'':'（可能联网）'}</option>`).join('');}
 function refreshVoiceOptions(){const select=$('#reader-voice');if(select){select.innerHTML=voiceOptions();const info=$('#voice-info');if(info)info.textContent=voiceSummary();}}
