@@ -1,10 +1,10 @@
 {
   "name": "yihu-xiyang",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "益护夕阳 App 框架与本机演示",
   "scripts": {
-    "check": "node --check dist/app.js && node --check dist/features.js && node --check dist/content.js && node --check dist/mobile.js && node scripts/validate_content.mjs",
+    "check": "node --check dist/app.js && node --check dist/features.js && node --check dist/content.js && node --check dist/mobile.js && node scripts/validate_content.mjs && node --check dist/modules-data.js && node --check dist/modules.js && node --check dist/module-actions.js && node --check dist/ai.js && node --check cloud/ai-consult/index.js && node --test tests/ai.test.cjs",
     "android:prepare": "python scripts/prepare_android.py",
     "android:sync": "cap sync android",
     "android:open": "cap open android"
@@ -14,6 +14,7 @@
     "@capacitor/app": "8.0.1",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.4",
+    "@capacitor/local-notifications": "8.3.1",
     "@capacitor/share": "8.0.3"
   },
   "devDependencies": {

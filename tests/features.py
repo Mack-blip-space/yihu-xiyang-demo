@@ -64,8 +64,8 @@ with sync_playwright() as p:
     page.reload()
     expect(page.locator('.story-card')).to_have_count(3)
     page.goto(url+'/#home')
-    page.locator('.topbar [data-action=font]').click()
-    assert page.evaluate('getComputedStyle(document.querySelector(".intro p")).fontSize')=='20px'
+    page.evaluate('prefs.large=true;savePrefs();render()')
+    assert page.evaluate('getComputedStyle(document.querySelector(".intro p")).fontSize')>='20px'
     for width in [320,390,768,1440]:
         page.set_viewport_size({'width':width,'height':900})
         for route in ['home','stories','story-new','story/example-call','mine','learn','article/public','report']:

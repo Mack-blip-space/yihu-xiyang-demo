@@ -13,3 +13,7 @@ android/app/src/main/assets/capacitor.plugins.json
 *.apk
 *.jks
 *.keystore
+.private/
+.env
+.env.*
+!.env.example

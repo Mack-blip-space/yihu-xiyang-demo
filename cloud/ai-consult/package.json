@@ -1,0 +1,8 @@
+{
+  "name": "yihu-private-ai-consult",
+  "version": "0.4.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {"node": ">=18"},
+  "dependencies": {"@cloudbase/node-sdk": "2.10.0"}
+}

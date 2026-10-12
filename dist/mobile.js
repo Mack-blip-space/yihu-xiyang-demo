@@ -46,6 +46,9 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(document.querySelector('#modal').open){closeModal();return;}
       if(route==='report'&&step>0){persistDraft();step--;render();return;}
       if(route.startsWith('article/'))navigate('learn');
+      else if(route.startsWith('lesson/'))navigate('classroom');
+      else if(route.startsWith('faq/'))navigate('ask');
+      else if(route.startsWith('case/'))navigate('cases');
       else if(route.startsWith('story/'))navigate('stories');
       else if(route==='story-new')navigate('stories');
       else if(route!=='home')navigate('home');

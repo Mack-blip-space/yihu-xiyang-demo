@@ -1,4 +1,13 @@
-# 益护夕阳 · App 体验版 V0.3
+# 益护夕阳 · App 体验版 V0.4
+
+V0.4 新增五模块入口、每日课堂、小测验、问答分类、材料快照、问法卡片、家人联系簿及 AI 内测接入代码。详情见 `更新记录-V0.4.md`。AI 云服务尚待账号开通与部署，不同手机的数据尚未互通。
+
+- 配置步骤：`云服务与AI开通指引.md`。
+- 法学院新增交接：`交接材料/V0.4五模块与AI内容补充.md`。
+- 新版安卓包部署后地址：`https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.4.apk`。
+- 固定最新版下载地址：`https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-latest.apk`。
+
+以下保留原框架说明；V0.4 以更新记录中的功能状态为准。
 
 面向法学院队长评审的可交互原型。原始项目书与 `APP/app.txt` 保持不变。
 

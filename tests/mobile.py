@@ -62,12 +62,12 @@ with sync_playwright() as p:
     assert page.locator('script[src]').count()==0
     assert not errors,errors
     browser.close()
-apk=ROOT/'releases/益护夕阳-v0.3-安卓体验版.apk'
+apk=ROOT/'releases/益护夕阳-v0.4-安卓体验版.apk'
 expected=(ROOT/'releases/SHA256SUMS.txt').read_text().split()[0]
 assert hashlib.sha256(apk.read_bytes()).hexdigest()==expected
 with zipfile.ZipFile(apk) as z:
     assert z.read('assets/public/app.js')==(ROOT/'dist/app.js').read_bytes()
     assert z.read('assets/public/mobile.js')==(ROOT/'dist/mobile.js').read_bytes()
     plugins=json.loads(z.read('assets/capacitor.plugins.json'))
-    assert {x['pkg'] for x in plugins}=={'@capacitor/app','@capacitor/filesystem','@capacitor/share'}
+    assert {x['pkg'] for x in plugins}=={'@capacitor/app','@capacitor/filesystem','@capacitor/share','@capacitor/local-notifications'}
 print(json.dumps({'result':'PASS','native':'mocked plugin contracts only','apkSHA256':expected,'checks':['back navigation','export and cancellation','optional audio gating','audio failure message','handoff layout','standalone HTML','downloaded APK matches source']},ensure_ascii=False))
