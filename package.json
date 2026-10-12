@@ -1,0 +1,22 @@
+{
+  "name": "yihu-xiyang",
+  "version": "0.3.0",
+  "private": true,
+  "description": "益护夕阳 App 框架与本机演示",
+  "scripts": {
+    "check": "node --check dist/app.js && node --check dist/features.js && node --check dist/content.js && node --check dist/mobile.js && node scripts/validate_content.mjs",
+    "android:prepare": "python scripts/prepare_android.py",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.0.1",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.4",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

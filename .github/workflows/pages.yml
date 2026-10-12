@@ -1,10 +1,13 @@
-name: Publish prototype to GitHub Pages
+name: Build Android and publish prototype
 
 on:
   push:
     branches: [main]
     paths:
       - 'dist/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - 'capacitor.config.json'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -16,7 +19,56 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked dependencies and check source
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+      - name: Generate reproducible Android project
+        run: |
+          npx cap add android
+          python3 scripts/prepare_android.py
+          npx cap sync android
+      - name: Reuse the demo signing key where available
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: yihu-demo-signing-v1
+      - name: Build and lint Android demo
+        working-directory: android
+        run: bash gradlew assembleDebug lintDebug --no-daemon
+      - name: Prepare downloadable demo
+        run: |
+          mkdir -p apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk/yihu-xiyang-v0.3.apk
+          cd apk
+          sha256sum yihu-xiyang-v0.3.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yihu-android-demo
+          path: apk/
+          retention-days: 30
+      - name: Upload Android diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-reports
+          path: android/app/build/reports/
+          if-no-files-found: ignore
   deploy:
+    needs: android
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,6 +85,12 @@ jobs:
           node --check dist/app.js
           node --check dist/content.js
           node --check dist/features.js
+          node --check dist/mobile.js
+      - name: Include the Android demo download
+        uses: actions/download-artifact@v4
+        with:
+          name: yihu-android-demo
+          path: dist/downloads
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static files only

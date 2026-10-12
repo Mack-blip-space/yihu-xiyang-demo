@@ -1,0 +1,6 @@
+{
+  "appId": "cn.yihu.xiyang.demo",
+  "appName": "益护夕阳",
+  "webDir": "dist",
+  "android": { "allowMixedContent": false }
+}
