@@ -1,0 +1,97 @@
+"""Browser checks for the real prototype flow. Run while the local server is active."""
+from pathlib import Path
+from playwright.sync_api import sync_playwright, expect
+import json
+import os
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / 'artifacts'
+OUT.mkdir(exist_ok=True)
+URL = os.environ.get('YIHU_TEST_URL', 'http://127.0.0.1:4173')
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(executable_path=r'C:\Program Files\Google\Chrome\Application\chrome.exe', headless=True)
+    ctx = browser.new_context(viewport={'width': 1440, 'height': 1000}, accept_downloads=True, reduced_motion='reduce')
+    page = ctx.new_page()
+    errors = []
+    page.on('pageerror', lambda e: errors.append(str(e)))
+    page.goto(URL)
+    page.wait_for_function('db !== null')
+    page.screenshot(path=str(OUT / 'desktop-home.png'), full_page=True)
+    page.get_by_role('button', name='我要维权', exact=True).click()
+    page.get_by_role('button', name='下一步', exact=True).click()
+    expect(page.get_by_role('alert')).to_contain_text('请先选择')
+    page.get_by_role('button', name='填入演示情景').click()
+    page.get_by_role('button', name='下一步', exact=True).click()
+    page.locator('#description').fill('测试')
+    page.get_by_role('button', name='下一步', exact=True).click()
+    expect(page.get_by_role('alert')).to_contain_text('至少填写 5 个字')
+    page.locator('#description').fill('【自动化虚构情景】有人推荐养老投资，我还未转账，希望先记录问题。')
+    page.get_by_role('button', name='下一步', exact=True).click()
+    page.locator('#attachments').set_input_files(str(OUT / 'desktop-home.png'))
+    expect(page.locator('.files')).to_contain_text('desktop-home.png')
+    page.get_by_role('button', name='下一步', exact=True).click()
+    page.get_by_role('button', name='确认保存演示线索').click()
+    expect(page.get_by_role('alert')).to_contain_text('勾选演示说明')
+    page.locator('#consent').check()
+    page.get_by_role('button', name='确认保存演示线索').click()
+    expect(page.get_by_role('heading', name='事情记下来了')).to_be_visible()
+    page.get_by_role('button', name='查看我的记录').click()
+    expect(page.get_by_text('机构接收 · 未发生')).to_be_visible()
+    page.reload()
+    page.wait_for_function('records.length === 1')
+    expect(page.get_by_role('heading', name='线索详情', exact=True)).to_be_visible()
+    page.get_by_role('button', name='desktop-home.png 点击查看本机附件').click()
+    expect(page.locator('dialog img')).to_be_visible()
+    page.get_by_role('button', name='关闭对话框').click()
+    with page.expect_download() as saved:
+        page.get_by_role('button', name='导出记录').click()
+    assert saved.value.suggested_filename.startswith('YH-DEMO-')
+    page.screenshot(path=str(OUT / 'desktop-record.png'), full_page=True)
+    page.goto(URL + '/#learn')
+    page.locator('#search').fill('材料')
+    expect(page.locator('.article-card')).to_have_count(1)
+    page.locator('.article-card').click()
+    expect(page.get_by_role('heading', name='记录问题时，可以准备哪些材料？')).to_be_visible()
+    page.goto(URL + '/#mine')
+    page.get_by_role('button', name='紧急联系人 添加一位信任的家人').click()
+    page.locator('[name="name"]').fill('演示家人')
+    page.locator('[name="phone"]').fill('00000000000')
+    page.get_by_role('button', name='保存联系人').click()
+    expect(page.locator('.settings')).to_contain_text(['演示家人', '大字版'])
+    page.get_by_role('switch', name='家人协助模式').click()
+    page.reload()
+    expect(page.get_by_role('heading', name='家人协助模式')).to_be_visible()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.goto(URL + '/#home')
+    page.screenshot(path=str(OUT / 'mobile-home.png'), full_page=True)
+    for name in ['home', 'learn', 'ask', 'report', 'mine', 'records', 'path', 'article/public']:
+        page.goto(URL + '/#' + name)
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), name + ' overflow'
+    page.goto(URL + '/#report')
+    page.get_by_role('button', name='填入演示情景').click()
+    page.get_by_role('button', name='下一步', exact=True).click()
+    page.evaluate("document.querySelector('#toast').style.display='none'")
+    page.screenshot(path=str(OUT / 'mobile-report.png'), full_page=True)
+    page.goto(URL + '/#home')
+    page.locator('.topbar [data-action="font"]').click()
+    for name in ['home', 'learn', 'report', 'mine', 'path', 'article/public']:
+        page.goto(URL + '/#' + name)
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), name + ' large overflow'
+    page.set_viewport_size({'width': 320, 'height': 740})
+    page.goto(URL + '/#home')
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), '320px overflow'
+    page.goto(URL + '/#records')
+    page.locator('.record').first.click()
+    page.get_by_role('button', name='删除记录', exact=True).click()
+    page.get_by_role('button', name='保留记录').click()
+    expect(page.get_by_role('heading', name='线索详情')).to_be_visible()
+    page.get_by_role('button', name='删除记录', exact=True).click()
+    page.get_by_role('button', name='确认删除').click()
+    expect(page.get_by_role('heading', name='还没有记录')).to_be_visible()
+    page.reload()
+    page.wait_for_function('db !== null')
+    expect(page.get_by_role('heading', name='还没有记录')).to_be_visible()
+    assert not errors, errors
+    print(json.dumps({'result': 'PASS', 'console_errors': errors, 'screenshots': str(OUT), 'checks': ['required fields', 'description validation', 'consent', 'attachment persistence', 'refresh persistence', 'record detail', 'export', 'content search', 'article navigation', 'contact persistence', 'family mode', 'mobile layouts', 'large fonts', 'delete confirmation']}, ensure_ascii=False))
+    browser.close()

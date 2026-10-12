@@ -1,0 +1,23 @@
+"""Package a self-contained review copy; originals and hosting configuration are excluded."""
+from pathlib import Path
+import zipfile
+
+root = Path(__file__).resolve().parent
+dist = root / 'dist'
+html = (dist / 'index.html').read_text(encoding='utf-8')
+html = html.replace('<link rel="stylesheet" href="styles.css">', '<style>\n' + (dist / 'styles.css').read_text(encoding='utf-8') + '\n</style>')
+html = html.replace('<script defer src="content.js"></script>', '')
+html = html.replace('<script defer src="features.js"></script>', '')
+html = html.replace('<script defer src="app.js"></script>', '')
+html = html.replace('<script defer src="mobile.js"></script>', '')
+scripts = '\n'.join((dist / name).read_text(encoding='utf-8') for name in ['content.js', 'features.js', 'mobile.js', 'app.js'])
+html = html.replace('</body>', '<script>\n' + scripts + '\n</script>\n</body>')
+single = root / '益护夕阳-双击体验.html'
+single.write_text(html, encoding='utf-8')
+archive = root / '益护夕阳-初版演示包.zip'
+with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+    for path in [single, root / 'README.md', root / '内容交接清单.md', root / '安卓开发与交付说明.md', root / 'build-demo.py', *dist.rglob('*'), *(root / '交接材料').rglob('*')]:
+        if not path.is_file():
+            continue
+        z.write(path, path.relative_to(root))
+print('Created self-contained HTML and review ZIP in project directory.')
