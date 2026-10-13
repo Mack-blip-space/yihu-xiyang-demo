@@ -1,19 +1,21 @@
-# 益护夕阳 · App 体验版 V0.4
+# 益护夕阳 · App 体验版 V0.4.1
 
 面向法学院团队评审的安卓 App 与网页版。原始项目书及 APP/app.txt 未修改，也未上传。
 
 - [网页版](https://mack-blip-space.github.io/yihu-xiyang-demo/)
-- [安卓 V0.4 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.4.apk)
+- [安卓 V0.4.1 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.4.1.apk)
 - [固定最新版下载地址](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-latest.apk)
 - [本次功能与待办](更新记录-V0.4.md)
 - [云服务与 AI 开通指引](云服务与AI开通指引.md)
+- [Cloudflare 免费部署指引（当前方案）](Cloudflare免费部署指引.md)
+- [V0.4.1 接入更新](更新记录-V0.4.1.md)
 - [法学院五模块内容补充清单](交接材料/V0.4五模块与AI内容补充.md)
 
 ## 当前能体验什么
 
 默认大字版、热线拨号、每日反诈情景与小测验、安卓本机学习提醒、问答分类、分步线索记录、附件与导出、材料清单及快照完整性校验、FAQ、制度图示、公开案例资料、家人联系簿、社区联系方式和本机匿名分享。
 
-AI 前端与百炼云函数接入代码已提供，**尚待账号开通和部署，尚未真实调用模型**。AI 体验凭证由后端校验，模型密钥只放云环境变量；App 只会在用户确认后发送当前问题。详情见配置指引。
+AI 已提供 Cloudflare Worker 与 D1 限额实现，项目负责人确认健康检查、数据库绑定和变量配置完成，**真实模型回复仍待启用后联调**。AI 体验凭证由后端校验，模型密钥只放服务端 Secret；App 只会在用户确认后发送当前脱敏问题。CloudBase 免费环境的 3 秒超时不适合当前同步模型请求，当前使用 Cloudflare 部署指引。
 
 记录、附件、联系人和分享目前只存当前设备，不同设备不共享。没有机构受理、在线志愿者接单、远程代填或实时风险通知。问题分类采用透明规则，不能当作法律定性。
 
