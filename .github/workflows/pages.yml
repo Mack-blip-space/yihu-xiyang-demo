@@ -52,10 +52,10 @@ jobs:
       - name: Prepare downloadable demo
         run: |
           mkdir -p apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk apk/yihu-xiyang-v0.4.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk/yihu-xiyang-v0.4.1.apk
           cd apk
-          sha256sum yihu-xiyang-v0.4.apk > SHA256SUMS.txt
-          cp yihu-xiyang-v0.4.apk yihu-xiyang-latest.apk
+          sha256sum yihu-xiyang-v0.4.1.apk > SHA256SUMS.txt
+          cp yihu-xiyang-v0.4.1.apk yihu-xiyang-latest.apk
       - uses: actions/upload-artifact@v4
         with:
           name: yihu-android-demo

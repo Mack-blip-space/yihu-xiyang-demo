@@ -8,8 +8,8 @@ if not (android / 'app/build.gradle').exists():
     raise SystemExit('Run npx cap add android first.')
 p = android / 'app/build.gradle'
 s = p.read_text(encoding='utf-8')
-s = re.sub(r'versionCode \d+', 'versionCode 4', s)
-s = re.sub(r'versionName "[^"]+"', 'versionName "0.4.0"', s)
+s = re.sub(r'versionCode \d+', 'versionCode 5', s)
+s = re.sub(r'versionName "[^"]+"', 'versionName "0.4.1"', s)
 p.write_text(s, encoding='utf-8')
 p = android / 'app/src/main/AndroidManifest.xml'
 s = p.read_text(encoding='utf-8').replace('android:allowBackup="true"','android:allowBackup="false"')
@@ -39,4 +39,4 @@ res = android / 'app/src/main/res'
     <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
   </style>
 </resources>''', encoding='utf-8')
-print('Configured Yihu Android 0.4.0, local assets, icon and no automatic backup.')
+print('Configured Yihu Android 0.4.1, local assets, icon and no automatic backup.')

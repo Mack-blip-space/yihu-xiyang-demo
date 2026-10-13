@@ -60,14 +60,14 @@ with sync_playwright() as p:
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
     expect(page.locator('#ai-status')).to_contain_text('没有发送')
     page.locator('summary').click()
-    page.locator('[name=endpoint]').fill('https://pilot.ap-shanghai.app.tcloudbase.com/api/consult')
+    page.locator('[name=endpoint]').fill('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
     page.locator('[name=credential]').fill('x'*43)
     page.get_by_role('button',name='保存体验配置').click()
     calls=[]
     def mock(route):
         calls.append(route.request.post_data_json)
         route.fulfill(status=200,content_type='application/json',body=json.dumps({'answer':'<img src=x onerror=alert(1)> 这是测试回答。'}))
-    page.route('https://pilot.ap-shanghai.app.tcloudbase.com/api/consult',mock)
+    page.route('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult',mock)
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
     expect(page.locator('#ai-answer')).to_contain_text('AI 生成')
     expect(page.locator('#ai-answer img')).to_have_count(0)

@@ -1,0 +1,16 @@
+{
+  "name": "yihu-ai-consult",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {
+    "AI_ENABLED": "false",
+    "ALLOWED_ORIGINS": "https://mack-blip-space.github.io,https://localhost"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "yihu-ai-usage",
+    "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+  }]
+}
