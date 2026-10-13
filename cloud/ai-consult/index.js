@@ -39,7 +39,8 @@ function createHandler({env=process.env,fetcher=globalThis.fetch,getDB}={}){
       if(question.length<5||question.length>1200)throw fail(400,'请填写5—1200字的问题');
       if(/(?:\d[\s-]*){11,}|[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(question))throw fail(400,'请先隐去电话、证件、银行卡号或邮箱');
       const base=env.BAILIAN_BASE_URL||'';
-      if(!/^https:\/\/[a-z0-9-]+\.cn-beijing\.maas\.aliyuncs\.com\/compatible-mode\/v1\/?$/.test(base)||!env.DASHSCOPE_API_KEY)throw fail(503,'模型服务尚未配置完成');
+      const officialBase=/^https:\/\/[a-z0-9-]+\.cn-beijing\.maas\.aliyuncs\.com\/compatible-mode\/v1\/?$/.test(base)||/^https:\/\/maas\.qianwenaiapi\.com\/compatible-mode\/v1\/?$/.test(base);
+      if(!officialBase||!env.DASHSCOPE_API_KEY)throw fail(503,'模型服务尚未配置完成');
       const db=getDB?getDB():require('@cloudbase/node-sdk').init({env:env.CLOUDBASE_ENV_ID}).database();
       await reserve(db,hash(token));
       const upstream=await fetcher(base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+env.DASHSCOPE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'qwen-plus',enable_thinking:false,max_tokens:600,temperature:0.2,messages:[{role:'system',content:SYSTEM},{role:'user',content:question}]}),signal:AbortSignal.timeout(25000)});

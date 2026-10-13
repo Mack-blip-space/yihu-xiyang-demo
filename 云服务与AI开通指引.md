@@ -1,5 +1,11 @@
 # 益护夕阳：免费云服务与 AI 开通指引
 
+## 当前账号配置更新（2026-10-13）
+
+已创建 CloudBase 环境：`yihu-pilot-d1gitbboh2218c4a2`，地域待在控制台确认。用户提供的是付费 API，Base URL 为 `https://maas.qianwenaiapi.com/compatible-mode/v1`。该地址已核对千问 AI 平台[官方接入文档](https://platform.qianwenai.com/docs/api-reference/preparation/api-key)，云函数已增加精确域名支持。对于当前账号，`BAILIAN_BASE_URL` 直接使用此地址，不需要另外拼接北京业务空间域名。不要根据此地址猜测账号地域或认为有免费额度；下面的免费开通方案保留作原计划参考。
+
+现有每人每日 10 次、全项目每日 100 次的限制是请求次数限制，不是人民币消费硬上限。当前保持 `AI_ENABLED=false`；部署及真实联调尚未进行。模型可用性和实际价格以当前账号的模型页为准。
+
 方案已确认：腾讯云 CloudBase 免费环境 + 阿里云百炼 qwen-plus。核对日期：2026-10-13。你现在先完成下方「第一步、第二步」，不需要购买云服务器，也不需要把密钥发给我。
 
 ## 第一步：开通腾讯云免费环境

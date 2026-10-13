@@ -33,3 +33,15 @@ test('persistent daily quotas and reset; failed attempts do not bypass caps',asy
   await assert.rejects(reserve(db,'new-tester',start+140000),{status:429});
   await reserve(db,'tester',start+86400000);
 });
+test('official Qianwen endpoint supported; lookalikes rejected without sending the key',async()=>{
+  let calls=0;
+  const fetcher=async url=>{calls++;assert.equal(url,'https://maas.qianwenaiapi.com/compatible-mode/v1/chat/completions');return {ok:true,json:async()=>({choices:[{message:{content:'测试回答'}}]})};};
+  for(const base of ['https://maas.qianwenaiapi.com/compatible-mode/v1','https://maas.qianwenaiapi.com/compatible-mode/v1/']){
+    const result=await createHandler({env:{...env,BAILIAN_BASE_URL:base},getDB:dbMock,fetcher})(event());
+    assert.equal(result.statusCode,200);
+  }
+  for(const base of ['https://maas.qianwenaiapi.com.evil.test/compatible-mode/v1','http://maas.qianwenaiapi.com/compatible-mode/v1','https://maas.qianwenaiapi.com@evil.test/compatible-mode/v1','https://maas.qianwenaiapi.com/compatible-mode/v1?redirect=evil']){
+    assert.equal((await createHandler({env:{...env,BAILIAN_BASE_URL:base},getDB:dbMock,fetcher})(event())).statusCode,503);
+  }
+  assert.equal(calls,2);
+});
