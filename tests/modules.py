@@ -59,10 +59,10 @@ with sync_playwright() as p:
     page.locator('#ai-question-form input[type=checkbox]').check()
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
     expect(page.locator('#ai-status')).to_contain_text('没有发送')
-    page.locator('summary').click()
-    page.locator('[name=endpoint]').fill('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
+    expect(page.locator('[name=endpoint]')).to_have_value('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
+    expect(page.locator('.ai-advanced')).not_to_have_attribute('open', '')
     page.locator('[name=credential]').fill('x'*43)
-    page.get_by_role('button',name='保存体验配置').click()
+    page.get_by_role('button',name='开始体验').click()
     calls=[]
     def mock(route):
         calls.append(route.request.post_data_json)
