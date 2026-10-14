@@ -19,7 +19,7 @@ single = root / '益护夕阳-双击体验.html'
 single.write_text(html, encoding='utf-8')
 archive = root / '益护夕阳-初版演示包.zip'
 with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as z:
-    for path in [single, root / 'README.md', root / '更新记录-V0.4.md', root / '更新记录-V0.4.1.md', root / 'Cloudflare免费部署指引.md', root / '云服务与AI开通指引.md', root / '内容交接清单.md', root / '安卓开发与交付说明.md', root / 'build-demo.py', *dist.rglob('*'), *(root / '交接材料').rglob('*')]:
+    for path in [single, root / 'README.md', root / '更新记录-V0.4.md', root / '更新记录-V0.4.1.md', root / '更新记录-V0.4.2.md', root / 'Cloudflare免费部署指引.md', root / '云服务与AI开通指引.md', root / '内容交接清单.md', root / '安卓开发与交付说明.md', root / 'build-demo.py', *dist.rglob('*'), *(root / '交接材料').rglob('*')]:
         if not path.is_file():
             continue
         z.write(path, path.relative_to(root))

@@ -75,6 +75,9 @@ with sync_playwright() as p:
     assert 'x'*43 not in page.evaluate('JSON.stringify(localStorage)')
     page.reload()
     assert page.evaluate('aiCredential')==''
+    page.locator('[data-ai="clear"]').click()
+    expect(page.locator('[name=endpoint]')).to_have_value('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
+    assert page.evaluate("localStorage.getItem('yihu-ai-endpoint')") is None
     for width in [320,390,768,1440]:
         page.set_viewport_size({'width':width,'height':900})
         for route in ['home','classroom','lesson/call','risk','evidence','vault','ask','institutions','cases','policies','guardians','services','consultations']:
