@@ -69,8 +69,8 @@ test('transport diagnostics expose only fixed codes and reject malformed key bef
 test('SQLite reservation enforces cooldown, daily user limit and China day rollover',async()=>{
   const db=database(),start=Date.parse('2026-10-13T00:00:00Z');
   await reserve(db,'a',start);await assert.rejects(reserve(db,'a',start+9999),{status:429});
-  for(let i=1;i<10;i++)await reserve(db,'a',start+i*10000);
-  await assert.rejects(reserve(db,'a',start+100000),{status:429});
+  for(let i=1;i<20;i++)await reserve(db,'a',start+i*10000);
+  await assert.rejects(reserve(db,'a',start+200000),{status:429});
   await reserve(db,'a',Date.parse('2026-10-13T16:00:00Z'));
 });
 test('concurrent reservations cannot exceed the global daily cap',async()=>{

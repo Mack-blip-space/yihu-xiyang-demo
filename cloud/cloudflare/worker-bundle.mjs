@@ -55,13 +55,13 @@ export function transportFailure(error){
 export const RESERVE_SQL=`INSERT INTO yihu_ai_usage (request_id,subject,day,at_ms)
 SELECT ?1,?2,?3,?4
 WHERE (SELECT COUNT(*) FROM yihu_ai_usage WHERE day=?3)<100
-  AND (SELECT COUNT(*) FROM yihu_ai_usage WHERE day=?3 AND subject=?2)<10
+  AND (SELECT COUNT(*) FROM yihu_ai_usage WHERE day=?3 AND subject=?2)<20
   AND NOT EXISTS (SELECT 1 FROM yihu_ai_usage WHERE subject=?2 AND at_ms>?4-10000)`;
 export async function reserve(db,subject,now=Date.now()){
   const day=new Date(now+8*3600000).toISOString().slice(0,10);
   const result=await db.prepare(RESERVE_SQL).bind(crypto.randomUUID(),subject,day,now).run();
   if(result.success!==true)throw fail(503,'配额服务暂不可用，请稍后再试');
-  if(result.meta?.changes!==1)throw fail(429,'请间隔10秒再试；每人每天最多10次，全项目每天最多100次');
+  if(result.meta?.changes!==1)throw fail(429,'请间隔10秒再试；每人每天最多20次，全项目每天最多100次');
 }
 async function hash(value){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(x=>x.toString(16).padStart(2,'0')).join('');}
 function equal(a,b){let n=a.length^b.length;for(let i=0;i<a.length;i++)n|=a.charCodeAt(i)^(b.charCodeAt(i)||0);return n===0;}
