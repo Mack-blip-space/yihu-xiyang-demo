@@ -66,11 +66,12 @@ with sync_playwright() as p:
     calls=[]
     def mock(route):
         calls.append(route.request.post_data_json)
-        route.fulfill(status=200,content_type='application/json',body=json.dumps({'answer':'<img src=x onerror=alert(1)> 这是测试回答。'}))
+        route.fulfill(status=200,content_type='application/json',body=json.dumps({'answer':'<img src=x onerror=alert(1)> 这是测试回答。','knowledgeVersion':'2026-10-15','reviewedKnowledge':True,'references':[{'id':'QA07'}]}))
     page.route('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult',mock)
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
     expect(page.locator('#ai-answer')).to_contain_text('AI 生成')
     expect(page.locator('#ai-answer img')).to_have_count(0)
+    expect(page.locator('#ai-references [data-go="faq/QA07"]')).to_have_count(1)
     assert set(calls[0])=={'question','consent'}
     assert 'x'*43 not in page.evaluate('JSON.stringify(localStorage)')
     page.reload()

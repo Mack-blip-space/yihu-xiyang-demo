@@ -17,6 +17,14 @@ export function knowledgePrompt(question){
   const context=records.length?records.map(r=>`[${r.id}] ${r.title}\n${r.sections.map(s=>s.heading+'：'+s.text).join('\n')}`).join('\n\n'):'没有检索到匹配的审核资料。';
   return {records,context};
 }
+export function checkGrounding(answer,records){
+  const trusted=records.map(r=>r.sections.map(s=>s.text).join('\n')).join('\n');
+  const specifics=answer.match(/(?:\d+|[一二三四五六七八九十百]+)\s*(?:个工作日|工作日|日内|天内|个月内)|第\s*[\d一二三四五六七八九十百]+\s*条/g)||[];
+  const unsupported=specifics.some(x=>!trusted.includes(x))||/依法免交|不收诉讼费|一律免交|肯定免交|保证全部追回|必然胜诉/.test(answer)||/\[(?:QA|KT|AL|LJ)\d{2}\]/g.test(answer)&&[...answer.matchAll(/\[((?:QA|KT|AL|LJ)\d{2})\]/g)].some(m=>!records.some(r=>r.id===m[1]));
+  if(!unsupported)return {answer,answerMode:'generated'};
+  const preferred=records.find(r=>r.kind==='QA')||records[0];
+  return {answer:preferred?'本次生成内容含无法核实的具体结论，改为展示审核资料摘要：\n\n['+preferred.id+'] '+preferred.title+'\n'+preferred.sections.slice(0,2).map(s=>s.heading+'\n'+s.text).join('\n\n')+'\n\n具体适用条件请向受理机构或12348核实。':'当前资料不足以支持具体期限、费用或个案结论。请说明问题类型和办理阶段，或向12348咨询。',answerMode:'reviewed-excerpt'};
+}
 
 
 /* Private pilot. No external packages, model secrets or question logs in source. */
@@ -89,7 +97,8 @@ export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={})
       try{result=JSON.parse(await readBounded(upstream.body,65536));}catch{throw fail(502,'模型响应格式异常或读取失败，请项目负责人检查模型服务');}
       const answer=result.choices?.[0]?.message?.content;
       if(typeof answer!=='string'||!answer.trim())throw fail(502,'模型没有返回有效回答');
-      return reply(200,{answer:answer.slice(0,6000),model:'qwen-plus',reviewedKnowledge:knowledge.records.length>0,references:knowledge.records.map(r=>({id:r.id,title:r.title})),knowledgeVersion:"2026-10-15",notice:'AI生成的一般参考，未经人工审核；复杂个案请咨询专业人员。'});
+      const checked=checkGrounding(answer.slice(0,6000),knowledge.records);
+      return reply(200,{...checked,model:'qwen-plus',reviewedKnowledge:knowledge.records.length>0,references:knowledge.records.map(r=>({id:r.id,title:r.title})),knowledgeVersion:"2026-10-15",notice:'一般参考，复杂个案请咨询专业人员。'});
     }catch(e){return reply(e.status||503,{error:e.status?e.message:'服务暂不可用或等待超时，请稍后再试或咨询12348'});}
   };
 }

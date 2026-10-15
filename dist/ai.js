@@ -23,9 +23,10 @@ document.addEventListener('submit',async e=>{
   try{
     const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiCredential},body:JSON.stringify({question:aiQuestion,consent:true}),signal:AbortSignal.timeout(35000)});
     const result=await response.json();if(!response.ok)throw new Error(typeof result.error==='string'?result.error:'服务暂不可用');
+    if(result.knowledgeVersion!=='2026-10-15')throw new Error('AI 知识库正在升级，请先查阅上方审核问答，或咨询12348。');
     if(typeof result.answer!=='string'||!result.answer.trim())throw new Error('服务没有返回有效回答');
     aiReferences=Array.isArray(result.references)?result.references.map(r=>facultyRecord(r.id)).filter(Boolean):[];
-    aiAnswer='AI 生成 · 未经人工审核\n\n'+result.answer.slice(0,6000);status.textContent=result.reviewedKnowledge?'回答已生成，下方可查看本次检索资料。':'回答已生成；本次未匹配到审核资料，请进一步核实。';
+    aiAnswer=(result.answerMode==='reviewed-excerpt'?'审核资料摘要 · 请结合具体情况':'AI 生成 · 未经人工审核')+'\n\n'+result.answer.slice(0,6000);status.textContent=result.reviewedKnowledge?'回答已生成，下方可查看本次检索资料。':'回答已生成；本次未匹配到审核资料，请进一步核实。';
   }catch(error){status.textContent=error.name==='TimeoutError'?'等待超时，请稍后重试。':error instanceof TypeError?'连接失败，请检查网络和服务配置。':error.message;}
   finally{aiBusy=false;button.disabled=false;if($('#ai-answer'))$('#ai-answer').textContent=aiAnswer;if($('#ai-references'))$('#ai-references').innerHTML=aiReferenceLinks();}
 });
