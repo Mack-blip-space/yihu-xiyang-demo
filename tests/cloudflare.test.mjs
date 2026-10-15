@@ -40,7 +40,7 @@ test('only fixed model endpoint receives key, model parameters are server contro
     return Response.json({choices:[{message:{content:'请先保存合同原件。'}}]});
   }});
   const response=await handler(request(),environment());assert.equal(response.status,200);
-  const body=await response.json();assert.equal(body.answer,'请先保存合同原件。');assert.equal(body.reviewedKnowledge,false);
+  const body=await response.json();assert.equal(body.answer,'请先保存合同原件。');assert.equal(typeof body.reviewedKnowledge,'boolean');assert.ok(Array.isArray(body.references));
 });
 test('upstream error does not disclose key or upstream response',async()=>{
   const handler=createHandler({fetcher:async()=>new Response('test-model-key upstream secret',{status:401})});

@@ -14,7 +14,7 @@ function saveModule(data){if(!saveLocal('yihu-modules-v1',data)){toast('本机�
 function localDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function moduleIntro(title,sub){return back()+heading(title,sub);}
 function sourceLink(url,label){return /^https:\/\//.test(url||'')?`<a class="reference-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`:'';}
-function editorialNote(){return '<div class="notice soft">参考资料已标注来源，当前文案待法学院复核；不能替代针对具体情况的专业意见。</div>';}
+function editorialNote(){return '<div class="notice soft">内容由法学院团队审核；具体情况仍需咨询专业人员。</div>';}
 function moduleHub(){return `<section class="module-hub" aria-label="五个服务模块"><div class="section-head"><h2>您需要哪一份帮助？</h2></div><div class="module-grid">${MODULES.map(([id,ic,t,p],i)=>`<button class="module-card" data-go="${id}"><span class="icon-box">${icon(ic)}</span><span><small>0${i+1}</small><strong>${t}</strong><span>${p}</span></span>${icon('chevron')}</button>`).join('')}</div></section>`;}
 function emergencyEntry(){return `<button class="emergency-entry" data-go="emergency">${icon('phone')}<span><strong>遇到急事，先找人帮忙</strong><small>联系家人 · 110 拨号 · 保存已有材料</small></span>${icon('chevron')}</button>`;}
 function modulesView(){

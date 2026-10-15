@@ -54,7 +54,7 @@ with sync_playwright() as p:
     page.goto(URL+'/#ask')
     page.locator('#faq-search-form input').fill('诉讼费')
     page.locator('#faq-search-form button').click()
-    expect(page.locator('#faq-results .setting')).to_have_count(1)
+    expect(page.locator('#faq-results .module-card')).to_have_count(1)
     page.locator('#ai-question-form textarea').fill('虚构测试：没有收到购买的服务，该整理什么材料？')
     page.locator('#ai-question-form input[type=checkbox]').check()
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
@@ -80,7 +80,7 @@ with sync_playwright() as p:
     assert page.evaluate("localStorage.getItem('yihu-ai-endpoint')") is None
     for width in [320,390,768,1440]:
         page.set_viewport_size({'width':width,'height':900})
-        for route in ['home','classroom','lesson/call','risk','evidence','vault','ask','institutions','cases','policies','guardians','services','consultations']:
+        for route in ['home','classroom','lesson/KT03','risk','evidence','vault','ask','institutions','cases','policies','guardians','services','consultations']:
             page.goto(URL+'/#'+route)
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),f'{width}/{route} overflow'
     page.set_viewport_size({'width':390,'height':844})
