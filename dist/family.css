@@ -1,0 +1,6 @@
+.family-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.family-columns input[type=checkbox]{width:28px;height:28px;min-width:28px;flex:none}
+#family-invite-value{font-family:monospace;font-size:20px;letter-spacing:.02em}
+#family-live .form-panel{border-left:5px solid #254e43}
+#family-live:empty{display:none}
+@media(max-width:760px){.family-columns{grid-template-columns:1fr}}
