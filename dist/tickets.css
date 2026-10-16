@@ -1,0 +1,11 @@
+.ticket-list,.operator-queue,.message-thread{display:grid;gap:14px}
+.ticket-card{width:100%;display:grid;grid-template-columns:1fr auto;gap:8px 14px;text-align:left;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--white);min-height:96px}
+.ticket-card>span,.ticket-card>strong,.ticket-card>small{grid-column:1}.ticket-card>.icon{grid-column:2;grid-row:1/4;align-self:center}
+.ticket-card>span{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.ticket-card strong{font-size:18px}.ticket-card small{color:var(--muted)}
+.ticket-status{display:inline-flex;align-items:center;min-height:34px;padding:4px 12px;border-radius:999px;font-weight:700;background:#ecefe8;border:1px solid #cbd5c5}
+.status-pending{background:#fff1d5;border-color:#d5a84b}.status-in_progress{background:#e6eef8;border-color:#7898b8}.status-replied{background:#e4f1e8;border-color:#76a580}.status-closed{background:#ececec;border-color:#aaa}
+.ticket-summary h2,.operator-ticket h2{margin-top:16px}.message{padding:17px;border-radius:12px;border:1px solid var(--line);background:#fff}.message-user{border-left:5px solid #9b7c43}.message-operator{border-left:5px solid var(--green);background:#f1f5ed}.message p{margin:7px 0}.message small{color:var(--muted)}
+.ticket-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.ticket-stats section{padding:18px;text-align:center;border:1px solid var(--line);border-radius:14px;background:#fff}.ticket-stats strong{display:block;font-size:32px}.ticket-stats span{font-size:15px}
+.operator-ticket{display:grid;gap:14px}.operator-ticket>.ticket-status{justify-self:start}.message-thread.compact{margin-top:6px}.ticket-loading{min-height:80px;display:grid;align-items:center}
+@media(max-width:600px){.ticket-stats{grid-template-columns:1fr}.ticket-card{padding:17px}.ticket-card strong{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.ticket-card{transition:none}}
