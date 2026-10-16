@@ -10,7 +10,7 @@ with sync_playwright() as p:
     errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(URL)
-    page.wait_for_function('db !== null')
+    page.wait_for_function('typeof db !== "undefined" && db !== null')
     assert page.evaluate('prefs.large') is True
     expect(page.locator('.module-hub .module-card')).to_have_count(5)
     page.goto(URL+'/#classroom')

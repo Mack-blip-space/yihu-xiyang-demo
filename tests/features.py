@@ -15,7 +15,7 @@ with sync_playwright() as p:
     errors = []
     page.on('pageerror',lambda e: errors.append(str(e)))
     page.goto(url)
-    page.wait_for_function('db !== null')
+    page.wait_for_function('typeof db !== "undefined" && db !== null')
     page.get_by_role('button',name='12315 消费者投诉举报',exact=True).click()
     expect(page.locator('dialog a[href="tel:12315"]')).to_be_visible()
     page.get_by_role('button',name='关闭对话框').click()

@@ -1,9 +1,9 @@
-# 益护夕阳 · App 体验版 V0.7.0
+# 益护夕阳 · App 体验版 V0.8.0
 
 面向法学院团队评审的安卓 App 与网页版。原始项目书及 APP/app.txt 未修改，也未上传。
 
 - [网页版](https://mack-blip-space.github.io/yihu-xiyang-demo/)
-- [安卓 V0.7.0 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.7.0.apk)
+- [安卓 V0.8.0 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.8.0.apk)
 - [固定最新版下载地址](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-latest.apk)
 - [本次功能与待办](更新记录-V0.4.md)
 - [云服务与 AI 开通指引](云服务与AI开通指引.md)
@@ -11,6 +11,7 @@
 - [V0.4.1 接入更新](更新记录-V0.4.1.md)
 - [V0.6.0 更新与双手机体验](releases/益护夕阳-V0.6.0-双手机体验说明.md)
 - [V0.7.0 人工咨询内测说明](releases/益护夕阳-V0.7.0-人工咨询内测说明.md)
+- [V0.8.0 消息通知内测说明](releases/益护夕阳-V0.8.0-消息通知内测说明.md)
 - [首批正式内容交接表（直接填写）](交接材料/首批正式内容交接表-V0.4.2.md)
 - [法学院五模块内容补充清单](交接材料/V0.4五模块与AI内容补充.md)
 
@@ -20,7 +21,7 @@
 
 AI 已通过 Cloudflare Worker 与 D1 接通千问，真实接口测试返回 200，详见 [接通记录](AI接通验证记录.md)。App 预填项目服务地址，用户输入原有内测邀请码即可提问。邀请码由后端校验，仅在页面内存保存，重新打开需再输入；模型密钥只放服务端 Secret。App 只会在用户确认后发送当前脱敏问题。已导入法学院审核的 22 条资料，回答可跳转查看检索参考。AI 回答本身仍需核实。
 
-维权记录、附件、联系簿和匿名分享仍只存当前设备。家庭守护圈支持跨设备绑定、固定求助消息和确认状态同步。V0.7.0 新增团队人工咨询内测，指定志愿者可接单和回复脱敏文字。没有律所或检察机关受理、远程代填或实时风险通知。问题分类采用透明规则，不能当作法律定性。
+维权记录、附件、联系簿和匿名分享仍只存当前设备。家庭守护圈支持跨设备绑定、固定求助消息和确认状态同步，团队人工咨询支持指定志愿者接单和回复脱敏文字。V0.8.0 安卓版可由用户主动开启家庭求助、咨询回复和工作台补充提醒；锁屏仅显示概括文字。没有律所或检察机关受理、远程代填或自动风险监控。问题分类采用透明规则，不能当作法律定性。
 
 依照此前确认，自动朗读保持关闭；收到审核通过的真人音频才显示播放器。语音填写可使用手机键盘语音输入，未接独立语音识别服务。
 
@@ -66,10 +67,11 @@ GitHub Actions 自动生成 Android 工程，执行 assembleDebug、lintDebug，
 |---|---|
 | dist/content.js | 原内容模板，文章及可选音频/配图 |
 | dist/modules-data.js | 课堂、FAQ、公开案例、政策资料，待法学院审核 |
-| dist/app.js、features.js、mobile.js | 原记录、匿名区、手机桥接 |
+| dist/app.js、features.js、mobile.js、notifications.js | 原记录、匿名区、手机桥接与通知设置 |
 | dist/modules.js、module-actions.js、modules.css | 五模块页面与本机交互 |
 | dist/ai.js | 用户主动发送的 AI 内测界面 |
 | cloud/ai-consult | 带鉴权和配额控制的百炼代理云函数 |
+| cloud/cloudflare/push.mjs、push-schema.sql | 通知订阅、通用载荷与 Firebase 发送 |
 | 交接材料 | 文案、配图、真人录音及审核交付要求 |
 | scripts/prepare_android.py | 可重复生成的安卓版本、图标及配置 |
 | 云服务与AI开通指引.md | 用户开通步骤与后端部署说明 |

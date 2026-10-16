@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "361209442362",
+    "project_id": "yihu-xiyang-push",
+    "storage_bucket": "yihu-xiyang-push.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361209442362:android:fc6ba5c81d65fcd479c503",
+        "android_client_info": {
+          "package_name": "cn.yihu.xiyang.demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBN1wuEt3vSskjfpOmq2pnZBriMSpjQGlc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
