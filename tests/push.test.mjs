@@ -38,6 +38,6 @@ test('push HTTP route enforces origin, JSON and authentication',async()=>{
 });
 
 test('client and Android sources keep lock-screen messages generic',()=>{
- const worker=readFileSync(new URL('../cloud/cloudflare/push.mjs',import.meta.url),'utf8'),service=readFileSync(new URL('../android/app/src/main/java/cn/yihu/xiyang/demo/YihuMessagingService.java',import.meta.url),'utf8');
+ const worker=readFileSync(new URL('../cloud/cloudflare/push.mjs',import.meta.url),'utf8'),service=readFileSync(new URL('../native/android/YihuMessagingService.java',import.meta.url),'utf8');
  assert.match(worker,/新的家庭守护消息/);assert.match(worker,/人工咨询有一条新回复/);assert.doesNotMatch(worker,/payload=\{body:.*question/);assert.match(service,/body\.length\(\) > 40/);
 });
