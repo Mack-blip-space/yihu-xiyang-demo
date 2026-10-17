@@ -8,7 +8,7 @@ import {createHandler} from '../cloud/cloudflare/worker.mjs';
 
 const pilot='pilot-ticket-'.repeat(4),operatorToken='operator-ticket-'.repeat(3),user='a'.repeat(64),other='b'.repeat(64),now=1792100000000;
 function environment(){
- const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');sql.exec(readFileSync(new URL('../cloud/cloudflare/ticket-schema.sql',import.meta.url),'utf8'));
+ const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');for(const file of ['ticket-schema.sql','push-schema.sql','schema.sql'])sql.exec(readFileSync(new URL('../cloud/cloudflare/'+file,import.meta.url),'utf8'));
  const db={prepare(query){return {bind(...args){return {async first(){return sql.prepare(query).get(...args)||null;},async all(){return {success:true,results:sql.prepare(query).all(...args)};},async run(){return {success:true,meta:{changes:Number(sql.prepare(query).run(...args).changes)}};}};}};},async batch(statements){sql.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sql.exec('COMMIT');return out;}catch(e){sql.exec('ROLLBACK');throw e;}}};
  return {DB:db,TESTER_TOKEN_HASHES:createHash('sha256').update(pilot).digest('hex'),OPERATOR_TOKEN_HASHES:createHash('sha256').update(operatorToken).digest('hex'),ALLOWED_ORIGINS:'https://mack-blip-space.github.io'};
 }
@@ -74,4 +74,30 @@ test('ticket HTTP route validates origin, method, body and separate operator hea
  assert.equal((await handler(new Request('https://example.com/api/tickets',{method:'OPTIONS',headers:{Origin:origin}}),env)).headers.get('Access-Control-Allow-Headers').includes('X-Operator-Credential'),true);
  assert.equal((await handler(new Request('https://example.com/api/tickets',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:'{}'}),env)).status,403);
  assert.equal((await handler(request('x'.repeat(9000)),env)).status,413);
+});
+
+
+test('competition feedback follows reply workflow and owner deletion cannot affect another device',async()=>{
+ const env=environment(),id=crypto.randomUUID();
+ await ticketAction({action:'create',requestId:id,pilot,consent:true,category:'使用反馈',question:'虚构反馈：想反馈按钮文字有些不清楚，希望能够改进。'},user,'',env,now);
+ const unrelated=(await create(env,other)).ticket;
+ await ticketAction({action:'operator-claim',ticketId:id},'',operatorToken,env,now+1);
+ await ticketAction({action:'operator-reply',ticketId:id,requestId:crypto.randomUUID(),body:'已记录这个界面问题，比赛演示中进行调整。'},'',operatorToken,env,now+2);
+ const before=await ticketAction({action:'list'},user,'',env);assert.equal(before.tickets[0].messages.length,1);
+ await assert.rejects(ticketAction({action:'delete-all'},user,'',env),{status:400});
+ const hash=createHash('sha256').update(user).digest('hex');
+ await env.DB.prepare("INSERT INTO yihu_push_subscription(kind,subject_hash,installation_id,fcm_token,created_ms,updated_ms) VALUES('ticket',?,?,?,?,?)").bind(hash,crypto.randomUUID(),'test-token',now,now).run();
+ assert.deepEqual(await ticketAction({action:'delete-all',confirm:true},user,'',env),{deleted:true});
+ assert.equal((await ticketAction({action:'list'},user,'',env)).tickets.length,0);
+ assert.equal((await ticketAction({action:'list'},other,'',env)).tickets[0].id,unrelated.id);
+ assert.equal((await env.DB.prepare('SELECT COUNT(*) n FROM yihu_ticket_message').bind().first()).n,0);
+ assert.equal((await env.DB.prepare('SELECT COUNT(*) n FROM yihu_push_subscription').bind().first()).n,0);
+ assert.deepEqual(await ticketAction({action:'delete-all',confirm:true},user,'',env),{deleted:true});
+});
+test('usage diagnostics require operator credential and return only aggregate counts',async()=>{
+ const env=environment();await create(env);
+ await assert.rejects(ticketAction({action:'operator-status'},user,'invalid',env),{status:401});
+ const result=await ticketAction({action:'operator-status'},'',operatorToken,env,now);
+ assert.equal(result.ai.used,0);assert.equal(result.ai.limit,100);assert.equal(result.notifications.total,0);
+ assert.equal(JSON.stringify(result).includes('question'),false);
 });

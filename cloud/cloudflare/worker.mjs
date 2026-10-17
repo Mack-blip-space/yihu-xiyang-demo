@@ -32,14 +32,14 @@ async function readBounded(body,limit){
   const all=new Uint8Array(size);let offset=0;for(const part of chunks){all.set(part,offset);offset+=part.byteLength;}return new TextDecoder().decode(all);
 }
 export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={}){
-  return async(request,env)=>{
+  return async(request,env,ctx)=>{
     const origin=request.headers.get('Origin')||'';
     const allowed=(env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean);
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin',...(allowed.includes(origin)?{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization, X-Operator-Credential'}:{})};
     const reply=(status,body)=>new Response(status===204?null:JSON.stringify(body),{status,headers});
     try{
       const url=new URL(request.url);
-      if(url.pathname==='/health'&&request.method==='GET')return reply(200,{service:'yihu-ai-pilot',version:'0.8.0',knowledgeVersion:'2026-10-15',knowledgeRecords:22,modelCalls:false,tickets:true,push:!!(env.FIREBASE_PROJECT_ID&&env.FIREBASE_CLIENT_EMAIL&&env.FIREBASE_PRIVATE_KEY)});
+      if(url.pathname==='/health'&&request.method==='GET')return reply(200,{service:'yihu-ai-pilot',version:'0.9.0',knowledgeVersion:'2026-10-15',knowledgeRecords:22,modelCalls:false,tickets:true,push:!!(env.FIREBASE_PROJECT_ID&&env.FIREBASE_CLIENT_EMAIL&&env.FIREBASE_PRIVATE_KEY)});
       if(url.pathname==='/api/family'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');
         if(request.method==='OPTIONS')return reply(204,{});
@@ -47,7 +47,7 @@ export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={})
         if(!request.headers.get('Content-Type')?.toLowerCase().startsWith('application/json'))throw fail(415,'请使用JSON格式');
         let data;try{data=JSON.parse(await readBounded(request.body,4096));}catch(e){if(e.status)throw e;throw fail(400,'请求格式不正确');}
         const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
-        const result=await familyAction(data,token,env);await notifyAction(data,token,'',env,fetcher).catch(()=>{});return reply(200,result);
+        const result=await familyAction(data,token,env);const delivery=notifyAction(data,token,'',env,fetcher).catch(()=>{});if(ctx?.waitUntil)ctx.waitUntil(delivery);else await delivery;return reply(200,result);
       }
       if(url.pathname==='/api/tickets'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');
@@ -57,7 +57,7 @@ export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={})
         let data;try{data=JSON.parse(await readBounded(request.body,8192));}catch(e){if(e.status)throw e;throw fail(400,'请求格式不正确');}
         const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
         const operator=request.headers.get('X-Operator-Credential')||'';
-        const result=await ticketAction(data,token,operator,env);await notifyAction(data,token,operator,env,fetcher).catch(()=>{});return reply(200,result);
+        const result=await ticketAction(data,token,operator,env);const delivery=notifyAction(data,token,operator,env,fetcher).catch(()=>{});if(ctx?.waitUntil)ctx.waitUntil(delivery);else await delivery;return reply(200,result);
       }
       if(url.pathname==='/api/push'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');

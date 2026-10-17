@@ -107,7 +107,7 @@ const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('
 const same=(a,b)=>{let n=a.length^b.length;for(let i=0;i<a.length;i++)n|=a.charCodeAt(i)^(b.charCodeAt(i)||0);return n===0;};
 const clean=value=>typeof value==='string'?value.trim():'';
 const privateData=value=>/(?:\d[\s-]*){11,}|[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(value);
-const allowedCategories=new Set(['诈骗疑虑','消费合同','投资理财','数字权益','财产纠纷','公益诉讼','其他']);
+const allowedCategories=new Set(['诈骗疑虑','消费合同','投资理财','数字权益','财产纠纷','公益诉讼','其他','使用反馈']);
 const publicTicket=t=>({id:t.id,code:t.code,category:t.category,question:t.question,status:t.status,created_ms:t.created_ms,updated_ms:t.updated_ms});
 async function validPilot(pilot,env){
  if(pilot.length<32||pilot.length>200)return false;
@@ -136,6 +136,12 @@ export async function ticketAction(data,deviceToken,operatorCredential,env,now=D
  const operator=await operatorIdentity(operatorCredential,env);
  if(action.startsWith('operator-')){
   if(!operator)throw ticketFail(401,'志愿者工作台凭证无效或已撤销');
+  if(action==='operator-status'){
+   const day=new Date(now+8*3600000).toISOString().slice(0,10);
+   const usage=await first('SELECT COUNT(*) n FROM yihu_ai_usage WHERE day=?',day);
+   const notifications=await first('SELECT COUNT(*) total,SUM(CASE WHEN enabled=1 THEN 1 ELSE 0 END) enabled,SUM(CASE WHEN last_error IS NOT NULL THEN 1 ELSE 0 END) failed FROM yihu_push_subscription');
+   return {serverTime:now,ai:{used:usage.n,limit:100,perPerson:20},notifications:{total:notifications.total,enabled:notifications.enabled||0,failed:notifications.failed||0}};
+  }
   if(action==='operator-list'){
    const rows=await db.prepare("SELECT * FROM yihu_ticket WHERE status<>'closed' ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'replied' THEN 1 ELSE 2 END,updated_ms ASC LIMIT 100").bind().all();
    return {tickets:await Promise.all(rows.results.map(t=>ticketWithMessages(db,t))),serverTime:now};
@@ -159,6 +165,15 @@ export async function ticketAction(data,deviceToken,operatorCredential,env,now=D
  }
  if(!/^[a-f0-9]{64}$/.test(deviceToken))throw ticketFail(401,'本机咨询身份无效，请使用原设备查看工单');
  const owner=await digest(deviceToken);
+ if(action==='delete-all'){
+  if(data.confirm!==true)throw ticketFail(400,'请确认删除本机提交的咨询与反馈');
+  await db.batch([
+   db.prepare('DELETE FROM yihu_ticket_message WHERE ticket_id IN (SELECT id FROM yihu_ticket WHERE owner_hash=?)').bind(owner),
+   db.prepare('DELETE FROM yihu_ticket WHERE owner_hash=?').bind(owner),
+   db.prepare("DELETE FROM yihu_push_subscription WHERE kind='ticket' AND subject_hash=?").bind(owner)
+  ]);
+  return {deleted:true};
+ }
  if(action==='list'){
   const rows=await db.prepare('SELECT * FROM yihu_ticket WHERE owner_hash=? ORDER BY updated_ms DESC LIMIT 20').bind(owner).all();
   return {tickets:await Promise.all(rows.results.map(t=>ticketWithMessages(db,t))),serverTime:now};
@@ -225,14 +240,14 @@ async function accessToken(env,fetcher,now=Date.now()){
  const key=await crypto.subtle.importKey('pkcs8',pemBytes(env.FIREBASE_PRIVATE_KEY),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
  const header=base64url(JSON.stringify({alg:'RS256',typ:'JWT'})),issued=Math.floor(now/1000),claims=base64url(JSON.stringify({iss:env.FIREBASE_CLIENT_EMAIL,scope:'https://www.googleapis.com/auth/firebase.messaging',aud:'https://oauth2.googleapis.com/token',iat:issued,exp:issued+3600}));
  const unsigned=header+'.'+claims,signature=base64url(new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(unsigned))));
- const response=await fetcher('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+signature})});
+ const response=await fetcher('https://oauth2.googleapis.com/token',{method:'POST',signal:AbortSignal.timeout(10000),headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+signature})});
  if(!response.ok)throw Error('FCM_AUTH_'+response.status);const result=await response.json();if(!result.access_token)throw Error('FCM_AUTH_RESPONSE');cachedAccessToken=result.access_token;cachedUntil=now+(Number(result.expires_in)||3600)*1000;return cachedAccessToken;
 }
 function configured(env){return !!(env.DB&&env.FIREBASE_PROJECT_ID&&env.FIREBASE_CLIENT_EMAIL&&env.FIREBASE_PRIVATE_KEY);}
 async function sendOne(row,payload,env,fetcher,now){
  try{
   const bearer=await accessToken(env,fetcher,now);
-  const response=await fetcher(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/messages:send`,{method:'POST',headers:{Authorization:'Bearer '+bearer,'Content-Type':'application/json'},body:JSON.stringify({message:{token:row.fcm_token,data:{title:'益护夕阳',body:payload.body,route:payload.route},android:{priority:payload.priority||'normal',ttl:'86400s'}}})});
+  const response=await fetcher(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/messages:send`,{method:'POST',signal:AbortSignal.timeout(10000),headers:{Authorization:'Bearer '+bearer,'Content-Type':'application/json'},body:JSON.stringify({message:{token:row.fcm_token,data:{title:'益护夕阳',body:payload.body,route:payload.route},android:{priority:payload.priority||'normal',ttl:'86400s'}}})});
   if(!response.ok){const body=await response.text();if(response.status===404||/UNREGISTERED|registration-token-not-registered/i.test(body))await env.DB.prepare('DELETE FROM yihu_push_subscription WHERE kind=? AND subject_hash=? AND installation_id=?').bind(row.kind,row.subject_hash,row.installation_id).run();else await env.DB.prepare('UPDATE yihu_push_subscription SET last_error=? WHERE kind=? AND subject_hash=? AND installation_id=?').bind('FCM_'+response.status,row.kind,row.subject_hash,row.installation_id).run();return false;}
   await response.body?.cancel();await env.DB.prepare('UPDATE yihu_push_subscription SET last_success_ms=?,last_error=NULL WHERE kind=? AND subject_hash=? AND installation_id=?').bind(now,row.kind,row.subject_hash,row.installation_id).run();return true;
  }catch(error){await env.DB.prepare('UPDATE yihu_push_subscription SET last_error=? WHERE kind=? AND subject_hash=? AND installation_id=?').bind(String(error?.message||'SEND_FAILED').slice(0,80),row.kind,row.subject_hash,row.installation_id).run();return false;}
@@ -255,8 +270,12 @@ export async function notifyAction(data,deviceToken,operatorCredential,env,fetch
  if(!payload||!eventKey||(!subject&&kind!=='operator'))return {sent:0};const reserved=await env.DB.prepare('INSERT INTO yihu_push_event(event_key,created_ms) VALUES(?,?) ON CONFLICT DO NOTHING').bind(eventKey,now).run();if(reserved.meta?.changes!==1)return {sent:0};return subject?sendTarget(kind,subject,payload,env,fetcher,now):sendAll(kind,payload,env,fetcher,now);
 }
 export async function pushAction(data,deviceToken,operatorCredential,env,fetcher=globalThis.fetch,now=Date.now()){
- if(!env.DB)throw pushFail(503,'通知服务暂不可用');const action=pushClean(data?.action),kind=pushClean(data?.kind);if(!kinds.has(kind))throw pushFail(400,'通知类型不正确');const subject=await subjectFor(kind,deviceToken,operatorCredential,env),installationId=pushClean(data.installationId),token=pushClean(data.fcmToken);
+ if(!env.DB)throw pushFail(503,'通知服务暂不可用');const action=pushClean(data?.action),kind=pushClean(data?.kind),installationId=pushClean(data.installationId),token=pushClean(data.fcmToken);
  if(!/^[a-f0-9-]{36}$/.test(installationId))throw pushFail(400,'本机通知标识无效');
+ if(action==='disable-all'){
+  if(token.length<40||token.length>4096)throw pushFail(400,'设备通知令牌无效');await env.DB.prepare('UPDATE yihu_push_subscription SET enabled=0,updated_ms=? WHERE installation_id=? AND fcm_token=?').bind(now,installationId,token).run();return {configured:configured(env),disabled:true,serverTime:now};
+ }
+ if(!kinds.has(kind))throw pushFail(400,'通知类型不正确');const subject=await subjectFor(kind,deviceToken,operatorCredential,env);
  if(action==='subscribe'){
   if(token.length<40||token.length>4096)throw pushFail(400,'设备通知令牌无效');
   await env.DB.prepare('INSERT INTO yihu_push_subscription(kind,subject_hash,installation_id,fcm_token,enabled,created_ms,updated_ms) VALUES(?,?,?,?,1,?,?) ON CONFLICT(kind,subject_hash,installation_id) DO UPDATE SET fcm_token=excluded.fcm_token,enabled=1,updated_ms=excluded.updated_ms,last_error=NULL').bind(kind,subject,installationId,token,now,now).run();
@@ -295,14 +314,14 @@ async function readBounded(body,limit){
   const all=new Uint8Array(size);let offset=0;for(const part of chunks){all.set(part,offset);offset+=part.byteLength;}return new TextDecoder().decode(all);
 }
 export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={}){
-  return async(request,env)=>{
+  return async(request,env,ctx)=>{
     const origin=request.headers.get('Origin')||'';
     const allowed=(env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean);
     const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin',...(allowed.includes(origin)?{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization, X-Operator-Credential'}:{})};
     const reply=(status,body)=>new Response(status===204?null:JSON.stringify(body),{status,headers});
     try{
       const url=new URL(request.url);
-      if(url.pathname==='/health'&&request.method==='GET')return reply(200,{service:'yihu-ai-pilot',version:'0.8.0',knowledgeVersion:'2026-10-15',knowledgeRecords:22,modelCalls:false,tickets:true,push:!!(env.FIREBASE_PROJECT_ID&&env.FIREBASE_CLIENT_EMAIL&&env.FIREBASE_PRIVATE_KEY)});
+      if(url.pathname==='/health'&&request.method==='GET')return reply(200,{service:'yihu-ai-pilot',version:'0.9.0',knowledgeVersion:'2026-10-15',knowledgeRecords:22,modelCalls:false,tickets:true,push:!!(env.FIREBASE_PROJECT_ID&&env.FIREBASE_CLIENT_EMAIL&&env.FIREBASE_PRIVATE_KEY)});
       if(url.pathname==='/api/family'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');
         if(request.method==='OPTIONS')return reply(204,{});
@@ -310,7 +329,7 @@ export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={})
         if(!request.headers.get('Content-Type')?.toLowerCase().startsWith('application/json'))throw fail(415,'请使用JSON格式');
         let data;try{data=JSON.parse(await readBounded(request.body,4096));}catch(e){if(e.status)throw e;throw fail(400,'请求格式不正确');}
         const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
-        const result=await familyAction(data,token,env);await notifyAction(data,token,'',env,fetcher).catch(()=>{});return reply(200,result);
+        const result=await familyAction(data,token,env);const delivery=notifyAction(data,token,'',env,fetcher).catch(()=>{});if(ctx?.waitUntil)ctx.waitUntil(delivery);else await delivery;return reply(200,result);
       }
       if(url.pathname==='/api/tickets'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');
@@ -320,7 +339,7 @@ export function createHandler({fetcher=(...args)=>globalThis.fetch(...args)}={})
         let data;try{data=JSON.parse(await readBounded(request.body,8192));}catch(e){if(e.status)throw e;throw fail(400,'请求格式不正确');}
         const token=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');
         const operator=request.headers.get('X-Operator-Credential')||'';
-        const result=await ticketAction(data,token,operator,env);await notifyAction(data,token,operator,env,fetcher).catch(()=>{});return reply(200,result);
+        const result=await ticketAction(data,token,operator,env);const delivery=notifyAction(data,token,operator,env,fetcher).catch(()=>{});if(ctx?.waitUntil)ctx.waitUntil(delivery);else await delivery;return reply(200,result);
       }
       if(url.pathname==='/api/push'){
         if(!origin||!allowed.includes(origin))throw fail(403,'当前客户端未获授权');

@@ -13,8 +13,7 @@ function familyToken(create=false){
 async function familyRequest(action,data={}){
  const token=familyToken(action==='create'||action==='join');
  if(!token)throw Error('请先创建或加入守护圈');
- const response=await fetch(FAMILY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({action,...data}),signal:AbortSignal.timeout(15000)});
- const result=await response.json();if(!response.ok)throw Error(result.error||'守护圈暂不可用');return result;
+ return demoRequest(FAMILY_ENDPOINT,{action,...data},{'Content-Type':'application/json',Authorization:'Bearer '+token});
 }
 function familyLive(){
  const s=familyState;

@@ -3,7 +3,7 @@ const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('
 const same=(a,b)=>{let n=a.length^b.length;for(let i=0;i<a.length;i++)n|=a.charCodeAt(i)^(b.charCodeAt(i)||0);return n===0;};
 const clean=value=>typeof value==='string'?value.trim():'';
 const privateData=value=>/(?:\d[\s-]*){11,}|[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(value);
-const allowedCategories=new Set(['诈骗疑虑','消费合同','投资理财','数字权益','财产纠纷','公益诉讼','其他']);
+const allowedCategories=new Set(['诈骗疑虑','消费合同','投资理财','数字权益','财产纠纷','公益诉讼','其他','使用反馈']);
 const publicTicket=t=>({id:t.id,code:t.code,category:t.category,question:t.question,status:t.status,created_ms:t.created_ms,updated_ms:t.updated_ms});
 async function validPilot(pilot,env){
  if(pilot.length<32||pilot.length>200)return false;
@@ -32,6 +32,12 @@ export async function ticketAction(data,deviceToken,operatorCredential,env,now=D
  const operator=await operatorIdentity(operatorCredential,env);
  if(action.startsWith('operator-')){
   if(!operator)throw ticketFail(401,'志愿者工作台凭证无效或已撤销');
+  if(action==='operator-status'){
+   const day=new Date(now+8*3600000).toISOString().slice(0,10);
+   const usage=await first('SELECT COUNT(*) n FROM yihu_ai_usage WHERE day=?',day);
+   const notifications=await first('SELECT COUNT(*) total,SUM(CASE WHEN enabled=1 THEN 1 ELSE 0 END) enabled,SUM(CASE WHEN last_error IS NOT NULL THEN 1 ELSE 0 END) failed FROM yihu_push_subscription');
+   return {serverTime:now,ai:{used:usage.n,limit:100,perPerson:20},notifications:{total:notifications.total,enabled:notifications.enabled||0,failed:notifications.failed||0}};
+  }
   if(action==='operator-list'){
    const rows=await db.prepare("SELECT * FROM yihu_ticket WHERE status<>'closed' ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'replied' THEN 1 ELSE 2 END,updated_ms ASC LIMIT 100").bind().all();
    return {tickets:await Promise.all(rows.results.map(t=>ticketWithMessages(db,t))),serverTime:now};
@@ -55,6 +61,15 @@ export async function ticketAction(data,deviceToken,operatorCredential,env,now=D
  }
  if(!/^[a-f0-9]{64}$/.test(deviceToken))throw ticketFail(401,'本机咨询身份无效，请使用原设备查看工单');
  const owner=await digest(deviceToken);
+ if(action==='delete-all'){
+  if(data.confirm!==true)throw ticketFail(400,'请确认删除本机提交的咨询与反馈');
+  await db.batch([
+   db.prepare('DELETE FROM yihu_ticket_message WHERE ticket_id IN (SELECT id FROM yihu_ticket WHERE owner_hash=?)').bind(owner),
+   db.prepare('DELETE FROM yihu_ticket WHERE owner_hash=?').bind(owner),
+   db.prepare("DELETE FROM yihu_push_subscription WHERE kind='ticket' AND subject_hash=?").bind(owner)
+  ]);
+  return {deleted:true};
+ }
  if(action==='list'){
   const rows=await db.prepare('SELECT * FROM yihu_ticket WHERE owner_hash=? ORDER BY updated_ms DESC LIMIT 20').bind(owner).all();
   return {tickets:await Promise.all(rows.results.map(t=>ticketWithMessages(db,t))),serverTime:now};
