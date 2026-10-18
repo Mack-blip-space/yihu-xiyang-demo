@@ -9,8 +9,8 @@ if not (android / 'app/build.gradle').exists():
     raise SystemExit('Run npx cap add android first.')
 p = android / 'app/build.gradle'
 s = p.read_text(encoding='utf-8')
-s = re.sub(r'versionCode \d+', 'versionCode 11', s)
-s = re.sub(r'versionName "[^"]+"', 'versionName "0.9.0"', s)
+s = re.sub(r'versionCode \d+', 'versionCode 12', s)
+s = re.sub(r'versionName "[^"]+"', 'versionName "0.9.1"', s)
 if 'firebase-messaging' not in s:
     s = s.replace("    implementation project(':capacitor-android')", "    implementation project(':capacitor-android')\n    implementation platform('com.google.firebase:firebase-bom:35.0.2')\n    implementation 'com.google.firebase:firebase-messaging'")
 p.write_text(s, encoding='utf-8')
@@ -54,4 +54,4 @@ res = android / 'app/src/main/res'
     <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
   </style>
 </resources>''', encoding='utf-8')
-print('Configured Yihu Android 0.9.0, local assets, icon and no automatic backup.')
+print('Configured Yihu Android 0.9.1, local assets, icon and no automatic backup.')

@@ -28,7 +28,7 @@ function appSettingsEntry(){return `<button class="setting" data-mobile="storage
 document.addEventListener('click',e=>{
   const save=e.target.closest('[data-save-attachment]');
   if(save){const r=records.find(r=>r.id===save.dataset.record);const f=r?.files[Number(save.dataset.saveAttachment)];if(f)download(f.blob,f.name);return;}
-  if(e.target.closest('[data-mobile="storage"]'))modal('本机数据与使用说明',`<p>这是一版用于团队体验的 App 框架。维权记录、附件、匿名分享和联系人仅保存在当前应用中，不会提交给机构，也不会对其他用户公开。</p><p>网页与安卓安装版各自保存数据，暂不相互同步。卸载 App 或清除应用数据可能删除本机记录；重要记录请先导出，附件请逐个另存。</p><p>目前请使用虚构信息体验。法律文章和配图由法学院同学审核后补充。</p>`);
+  if(e.target.closest('[data-mobile="storage"]'))modal('本机数据与使用说明',`<p>维权记录、附件、匿名分享和联系人仅保存在当前应用中，不会提交给机构，也不会对其他用户公开。</p><p>网页与安卓安装版各自保存数据，暂不相互同步。卸载 App 或清除应用数据可能删除本机记录；重要记录请先导出，附件请逐个另存。</p><p>体验时请使用虚构或脱敏信息，不填写个人敏感资料。</p>`);
 });
 document.addEventListener('error',e=>{
   if(e.target.tagName==='AUDIO'||e.target.tagName==='SOURCE'){

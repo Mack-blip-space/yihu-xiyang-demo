@@ -38,7 +38,7 @@ for r in records:
         dest=ROOT/'dist'/target;dest.parent.mkdir(parents=True,exist_ok=True)
         with Image.open(INTAKE/src) as im:
             im=im.convert('RGB');im.thumbnail((1800,2400));im.save(dest,'WEBP',quality=88)
-        images.append({'src':target,'alt':f'{r["title"]}配图 {i+1}','credit':'法学院团队供图 · 情景示意'})
+        images.append({'src':target,'alt':f'{r["title"]}配图 {i+1}','credit':'情景示意'})
     quiz=None
     if kind=='KT':
         q=re.search(r'小测题干\s*[:：]?\s*(.*?)\n选项',text,re.S)
