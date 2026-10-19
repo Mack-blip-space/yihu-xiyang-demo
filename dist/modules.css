@@ -16,3 +16,32 @@ fieldset{min-inline-size:0}.answer-options label>span{min-width:0;overflow-wrap:
 .large .module-card strong{font-size:27px}.large .module-card span>span,.large .emergency-entry small,.large .answer-options small,.large .mode-label,.large .source-row{font-size:21px}.large .story-panel h2{font-size:28px}.large .story-panel p,.large .feature-panel p,.large .form-panel p,.large .contact-card p,.large .process-flow p{font-size:24px}.large .answer-options label{font-size:24px}
 button,a.primary,a.secondary{min-height:48px}input,textarea,select{max-width:100%}.main p,.main strong{overflow-wrap:anywhere}.main .actions{flex-wrap:wrap}.main .actions a{max-width:100%}.footnote,.editor-note,.notice,.field-hint,.setting small{font-size:18px}
 @media(max-width:760px){.module-grid,.institution-grid,.storyboard{grid-template-columns:1fr}.module-card{padding:18px;gap:12px}.module-card .icon-box{width:44px;height:44px}.module-card strong{font-size:23px}.emergency-entry{padding:18px;gap:12px}.emergency-entry strong{font-size:23px}.emergency-entry>.icon:last-child{display:none}.feature-panel,.contact-card,.catalog-summary,.story-panel{padding:20px}.bottom-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}.bottom-nav button{min-width:0;padding:6px 1px}.large .bottom-nav button span:last-child{font-size:18px}.large .bottom-nav .nav-icon,.large .bottom-nav button.active .nav-icon{padding:2px 8px}.large .main{padding-bottom:140px}.question-form{flex-wrap:wrap}.question-form input{min-width:0;width:100%}.question-form button{width:100%}.section-head{flex-wrap:wrap}.large .intro p{font-size:22px}.large .module-card strong{font-size:25px}.contact-card .actions>*{width:100%}.large .emergency-entry strong{font-size:26px}.large .module-card>.icon:last-child{display:none}}
+
+/* Compact user entry points; keep large text and generous touch targets. */
+.home-primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.home-primary-actions button{width:100%;min-width:0;padding:14px 10px}
+.home-overview .intro{margin-bottom:14px}.home-overview .section-head{margin-top:20px}
+.home-overview .hotline-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.home-overview .hotline-card,.large .home-overview .hotline-card{display:block;padding:14px;text-align:center}
+.home-overview .hotline-icon,.home-overview .hotline-card>.icon{display:none!important}
+.home-overview .hotline-card strong,.large .home-overview .hotline-card strong{font-size:36px}
+.home-overview .hotline-label,.large .home-overview .hotline-label{font-size:19px;min-height:0;line-height:1.5}
+.home-overview .emergency-entry{margin:16px 0;padding:14px}
+.home-overview .module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.home-overview .module-card{padding:16px;min-width:0;display:block}
+.home-overview .module-card .icon-box{margin-bottom:10px}
+.home-overview .module-card>span>small,.home-overview .module-card>.icon{display:none}
+.home-overview .module-card:last-child{grid-column:1/-1}
+.ai-panel textarea{min-height:116px}.ai-access{border-top:1px solid var(--line);margin-top:18px}
+.ai-panel #ai-answer:empty,.ai-panel #ai-references:empty{display:none}
+.management-entry{margin-top:24px;border-top:1px solid var(--line);padding-top:10px}
+@media(max-width:760px){
+ .home-overview .intro h1,.large .home-overview .intro h1{font-size:28px}
+ .home-overview .intro p,.large .home-overview .intro p{font-size:20px}
+ .home-overview .section-head h2,.large .home-overview .section-head h2{font-size:24px}
+ .home-overview .module-card strong,.large .home-overview .module-card strong{font-size:23px}
+ .home-overview .module-card span>span,.large .home-overview .module-card span>span{font-size:19px}
+ .home-primary-actions button,.large .home-primary-actions button{font-size:23px}
+ .home-primary-actions .icon{display:none}
+ .home-overview .emergency-entry strong,.large .home-overview .emergency-entry strong{font-size:23px}
+}

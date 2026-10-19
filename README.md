@@ -1,9 +1,9 @@
-# 益护夕阳 · App 体验版 V0.9.1
+# 益护夕阳 · App 体验版 V0.9.2
 
 面向法学院团队评审的安卓 App 与网页版。原始项目书及 APP/app.txt 未修改，也未上传。
 
 - [网页版](https://mack-blip-space.github.io/yihu-xiyang-demo/)
-- [安卓 V0.9.1 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.9.1.apk)
+- [安卓 V0.9.2 安装包](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-v0.9.2.apk)
 - [固定最新版下载地址](https://mack-blip-space.github.io/yihu-xiyang-demo/downloads/yihu-xiyang-latest.apk)
 - [本次功能与待办](更新记录-V0.4.md)
 - [云服务与 AI 开通指引](云服务与AI开通指引.md)

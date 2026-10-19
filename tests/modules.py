@@ -59,8 +59,8 @@ with sync_playwright() as p:
     page.locator('#ai-question-form input[type=checkbox]').check()
     page.get_by_role('button',name='向 AI 提问',exact=True).click()
     expect(page.locator('#ai-status')).to_contain_text('没有发送')
-    expect(page.locator('[name=endpoint]')).to_have_value('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
-    expect(page.locator('.ai-advanced')).not_to_have_attribute('open', '')
+    assert page.evaluate('aiEndpoint()')=='https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult'
+    expect(page.locator('.ai-advanced')).to_have_count(0)
     page.locator('[name=credential]').fill('x'*43)
     page.get_by_role('button',name='开始体验').click()
     calls=[]
@@ -77,7 +77,7 @@ with sync_playwright() as p:
     page.reload()
     assert page.evaluate('aiCredential')==''
     page.locator('[data-ai="clear"]').click()
-    expect(page.locator('[name=endpoint]')).to_have_value('https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult')
+    assert page.evaluate('aiEndpoint()')=='https://yihu-ai-consult.1201wburbankblvd.workers.dev/api/consult'
     assert page.evaluate("localStorage.getItem('yihu-ai-endpoint')") is None
     for width in [320,390,768,1440]:
         page.set_viewport_size({'width':width,'height':900})
