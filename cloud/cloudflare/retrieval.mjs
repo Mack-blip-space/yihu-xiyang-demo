@@ -4,7 +4,7 @@ const grams=s=>new Set(Array.from({length:Math.max(0,s.length-1)},(_,i)=>s.slice
 export function retrieve(question){
   const q=grams(normalize(question));
   const intents=[
-    [/解冻费|安全账户|陌生账户|被骗|诈骗|催.{0,8}转账|验证码/,'QA01',100],
+    [/解冻费|安全账户|陌生账户|被骗|诈骗|催.{0,8}转账|验证码|冒充|公检法|自称.{0,8}(法院|银行|公安|检察)|法院.{0,12}(电话|短信|出庭)|银行.{0,12}(电话|短信)|要求.{0,8}出庭/,'QA01',100],
     [/证据|凭证|保存.{0,8}(材料|记录)|聊天记录/,'QA02',50],
     [/网购|快递|未收到|没收到|不发货/,'QA03',70],
     [/理财|提现|投资|非法集资/,'QA04',70],
@@ -26,15 +26,16 @@ export function retrieve(question){
 }
 export function knowledgePrompt(question){
   const records=retrieve(question);
-  const context=records.length?records.map(r=>`[${r.id}] ${r.title}\n${r.sections.map(s=>s.heading+'：'+s.text).join('\n')}`).join('\n\n'):'没有检索到匹配的审核资料。';
+  const context=records.length?records.map(r=>`[${r.id}] ${r.title}\n${r.sections.map(s=>s.heading+'：'+s.text).join('\n')}`).join('\n\n'):'没有检索到匹配的知识库资料。';
   return {records,context};
 }
 export function checkGrounding(answer,records){
   const trusted=records.map(r=>r.sections.map(s=>s.text).join('\n')).join('\n');
   const specifics=answer.match(/(?:\d+|[一二三四五六七八九十百]+)\s*(?:个工作日|工作日|日内|天内|个月内)|第\s*[\d一二三四五六七八九十百]+\s*条/g)||[];
   const fabricatedQuote=[...answer.matchAll(/[“「]([^”」]{8,})[”」]/g)].some(m=>/依据|规定|指引|原文|》/.test(answer.slice(Math.max(0,m.index-80),m.index))&&!normalize(trusted).includes(normalize(m[1])));
-  const unsupported=fabricatedQuote||specifics.some(x=>!normalize(trusted).includes(normalize(x)))||/依法免交|不收诉讼费|一律免交|肯定免交|保证全部追回|必然胜诉/.test(answer)||/\[(?:QA|KT|AL|LJ)\d{2}\]/g.test(answer)&&[...answer.matchAll(/\[((?:QA|KT|AL|LJ)\d{2})\]/g)].some(m=>!records.some(r=>r.id===m[1]));
+  const unsupportedPhone=(answer.match(/(?<!\d)\d{5,}(?!\d)/g)||[]).some(x=>!['12309','12315','12348'].includes(x)&&!normalize(trusted).includes(x));
+  const unsupported=fabricatedQuote||specifics.some(x=>!normalize(trusted).includes(normalize(x)))||unsupportedPhone||/法学院|审校|审核资料|项目团队|开发过程|依法免交|不收诉讼费|一律免交|肯定免交|保证全部追回|必然胜诉/.test(answer)||/\[(?:QA|KT|AL|LJ)\d{2}\]/g.test(answer)&&[...answer.matchAll(/\[((?:QA|KT|AL|LJ)\d{2})\]/g)].some(m=>!records.some(r=>r.id===m[1]));
   if(!unsupported)return {answer,answerMode:'generated'};
   const preferred=records.find(r=>r.kind==='QA')||records[0];
-  return {answer:preferred?'本次生成内容含无法核实的具体结论，改为展示审核资料摘要：\n\n['+preferred.id+'] '+preferred.title+'\n'+preferred.sections.slice(0,2).map(s=>s.heading+'\n'+s.text).join('\n\n')+'\n\n具体适用条件请向受理机构或12348核实。':'当前资料不足以支持具体期限、费用或个案结论。请说明问题类型和办理阶段，或向12348咨询。',answerMode:'reviewed-excerpt'};
+  return {answer:preferred?'本次生成内容含无法核实的信息，改为展示知识库资料摘要：\n\n['+preferred.id+'] '+preferred.title+'\n'+preferred.sections.slice(0,2).map(s=>s.heading+'\n'+s.text).join('\n\n')+'\n\n具体适用条件请向受理机构或12348核实。':'当前资料不足以支持具体期限、费用或个案结论。请说明问题类型和办理阶段，或向12348咨询。',answerMode:'reviewed-excerpt'};
 }

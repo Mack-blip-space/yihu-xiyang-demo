@@ -23,6 +23,7 @@ test('retrieval finds relevant fee, aid, fraud and representation guidance',()=>
 });
 test('realistic indirect scam and maintenance questions prioritize the right reviewed FAQ',()=>{
  assert.equal(retrieve('我昨天给陌生账户转了两万元，现在对方还让我交解冻费，我该怎么办，能保证追回吗？')[0].id,'QA01');
+ assert.deepEqual(retrieve('有人每隔几天给我打电话，一直说让我出庭，一会说是银行，一会说是法院，还发短信骚扰我').map(r=>r.id),['QA01']);
  assert.equal(retrieve('子女欠我赡养费，我能直接以个人名义提起公益诉讼吗？支持起诉有什么不同？')[0].id,'QA10');
  assert.equal(retrieve('我年纪大没有收入，诉讼费是不是都不用交，应该怎么申请？')[0].id,'QA07');
 });
@@ -32,4 +33,12 @@ test('invented quotations presented as legal sources are rejected, and unrelated
  const answer='引用依据：[QA01]《电信网络诈骗案件办理指引》：“以解冻账户为由索要钱财的，均为诈骗”。';
  const result=checkGrounding(answer,records);assert.equal(result.answerMode,'reviewed-excerpt');assert.ok(result.answer.includes('[QA01]'));assert.ok(result.answer.includes('不再转账'));assert.ok(!result.answer.includes('均为诈骗'));
  const fees=retrieve('诉讼费缓交');assert.equal(checkGrounding('依据第44条，可以向人民法院申请司法救助。[QA07]',fees).answerMode,'generated');
+});
+test('internal editorial wording and unsupported service numbers fall back to public-facing knowledge text',()=>{
+  const records=retrieve('有人冒充法院和银行让我转账');
+  for(const answer of ['根据法学院审校资料编号QA01，请停止转账。','请拨打银行客服电话95588核实。']){
+    const checked=checkGrounding(answer,records);
+    assert.equal(checked.answerMode,'reviewed-excerpt');
+    assert.doesNotMatch(checked.answer,/法学院|审校|审核资料|95588/);
+  }
 });

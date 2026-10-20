@@ -1,0 +1,7 @@
+{
+  "AI_ENABLED": "false",
+  "DASHSCOPE_API_KEY": "",
+  "MODEL_BASE_URL": "https://ws-ser0h03wwlgrovt5.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+  "ALLOWED_ORIGINS": "https://localhost,http://localhost,capacitor://localhost,https://mack-blip-space.github.io",
+  "TESTER_TOKEN_HASHES": ""
+}
