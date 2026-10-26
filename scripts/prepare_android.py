@@ -1,6 +1,7 @@
 """Apply the reproducible Yihu settings to a generated Capacitor Android project."""
 from pathlib import Path
 import re
+import json
 import shutil
 
 root = Path(__file__).resolve().parents[1]
@@ -9,6 +10,7 @@ if not (android / 'app/build.gradle').exists():
     raise SystemExit('Run npx cap add android first.')
 p = android / 'app/build.gradle'
 s = p.read_text(encoding='utf-8')
+s = re.sub(r'namespace = "[^"]+"', 'namespace = "cn.yihu.xiyang.demo"', s)
 s = re.sub(r'versionCode \d+', 'versionCode 15', s)
 s = re.sub(r'versionName "[^"]+"', 'versionName "1.0"', s)
 if 'firebase-messaging' not in s:
@@ -29,7 +31,10 @@ for name in ('MainActivity.java', 'YihuPushPlugin.java', 'YihuMessagingService.j
 firebase = root / 'native/android/google-services.json'
 if not firebase.exists():
     raise SystemExit('Missing native/android/google-services.json; register the Firebase Android app before building.')
-shutil.copyfile(firebase, android / 'app/google-services.json')
+firebase_config = json.loads(firebase.read_text(encoding='utf-8'))
+for client in firebase_config.get('client', []):
+    client['client_info']['android_client_info']['package_name'] = 'cn.yihu.xiyang.capture'
+(android / 'app/google-services.json').write_text(json.dumps(firebase_config), encoding='utf-8')
 res = android / 'app/src/main/res'
 (res / 'drawable/yihu_icon.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">

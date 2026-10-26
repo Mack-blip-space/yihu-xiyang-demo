@@ -1,6 +1,8 @@
 {
-  "appId": "cn.yihu.xiyang.demo",
-  "appName": "益护夕阳",
+  "appId": "cn.yihu.xiyang.capture",
+  "appName": "益护夕阳 1.0",
   "webDir": "dist",
-  "android": { "allowMixedContent": false }
+  "android": {
+    "allowMixedContent": false
+  }
 }
